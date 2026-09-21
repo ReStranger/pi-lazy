@@ -150,8 +150,20 @@ function resolveJitiCreate(): ((...args: any[]) => any) | null {
 }
 
 async function importFactory(extensionPath: string): Promise<((api: ExtensionAPI) => unknown) | null> {
-	// Prefer native import for compiled JS; fall back to jiti for TS.
-	if (/\.(js|mjs|cjs)$/.test(extensionPath)) {
+	// Prefer native import for compiled JS everywhere; for TypeScript prefer it
+	// too wherever the runtime handles TS itself. Bun (including bun-compiled
+	// host binaries) imports .ts natively, while plain node needs jiti's
+	// transform — so under node the gate stays JS-only and behavior is
+	// unchanged. Trying native TS first under bun also skips the jiti resolve
+	// entirely, which fails inside compiled binaries where the install tree
+	// (and hence jiti) is not resolvable from the running module graph.
+	const hasNativeTs =
+		typeof process !== "undefined" &&
+		typeof process.versions === "object" &&
+		process.versions !== null &&
+		"bun" in process.versions;
+	const nativeRe = hasNativeTs ? /\.(js|mjs|cjs|ts|mts|cts|tsx)$/ : /\.(js|mjs|cjs)$/;
+	if (nativeRe.test(extensionPath)) {
 		try {
 			const mod = await import(fileUrl(extensionPath));
 			const factory = asFactory(mod);

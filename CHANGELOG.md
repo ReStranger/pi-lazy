@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Load TypeScript extensions with a native `import()` under runtimes that
+  handle TS themselves (Bun, including Bun-compiled host binaries) instead
+  of requiring jiti. Under plain Node the loader behaves exactly as before
+  (native JS only, jiti for TS). This fixes `jiti not available` failures
+  when Pi runs as a compiled binary, where the install tree — and hence
+  jiti — is not resolvable from the running module graph.
 ## 0.3.1
 
 - Republish from restored `main` after an unauthorized force-push on 2026-08-27 rewrote this repository's default branch. npm `0.3.0` was published on 2026-08-24, before that rewrite. Install from npm or this tag, not from a clone taken during the incident.

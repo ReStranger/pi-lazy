@@ -430,7 +430,9 @@ function resolveJitiCreate() {
   return cachedCreateJiti = null;
 }
 async function importFactory(extensionPath) {
-  if (/\.(js|mjs|cjs)$/.test(extensionPath)) {
+  const hasNativeTs = typeof process !== "undefined" && typeof process.versions === "object" && process.versions !== null && "bun" in process.versions;
+  const nativeRe = hasNativeTs ? /\.(js|mjs|cjs|ts|mts|cts|tsx)$/ : /\.(js|mjs|cjs)$/;
+  if (nativeRe.test(extensionPath)) {
     try {
       const mod = await import(fileUrl(extensionPath));
       const factory = asFactory(mod);
